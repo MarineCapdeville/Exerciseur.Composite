@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Entraînement Calculs Composites</title>
+<style>
+  :root{
+    --bg:#f4f6f8;
+    --card:#ffffff;
+    --text:#1f2937;
+    --muted:#6b7280;
+    --border:#d1d5db;
+    --accent:#0f766e;
+    --accent2:#0b5ed7;
+    --ok:#166534;
+    --bad:#b91c1c;
+    --warn:#92400e;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    background:var(--bg);
+    color:var(--text);
+  }
+  .wrap{
+    max-width:980px;
+    margin:0 auto;
+    padding:24px;
+  }
+  h1{
+    margin:0 0 8px;
+    font-size:2rem;
+  }
+  .subtitle{
+    color:var(--muted);
+    margin-bottom:22px;
+  }
+  .topbar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  button{
+    border:none;
+    border-radius:10px;
+    padding:11px 14px;
+    cursor:pointer;
+    font-weight:700;
+    font-size:0.98rem;
+  }
+  .mode{
+    background:#e5e7eb;
+    color:#111827;
+  }
+  .mode.active{
+    background:var(--accent);
+    color:white;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:22px;
+    box-shadow:0 4px 16px rgba(0,0,0,0.05);
+  }
+  .question-title{
+    font-size:1.15rem;
+    font-weight:700;
+    margin-bottom:16px;
+  }
+  .data{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:12px;
+    margin-bottom:18px;
+  }
+  .datum{
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px;
+    background:#fafafa;
+  }
+  .datum .label{
+    color:var(--muted);
+    font-size:0.9rem;
+    margin-bottom:4px;
+  }
+  .datum .value{
+    font-size:1.2rem;
+    font-weight:700;
+  }
+  .answer-row{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px;
+    margin:14px 0;
+  }
+  input{
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    font-size:1rem;
+    width:180px;
+  }
+  .primary{
+    background:var(--accent2);
+    color:white;
+  }
+  .secondary{
+    background:#e5e7eb;
+    color:#111827;
+  }
+  .new{
+    background:var(--accent);
+    color:white;
+  }
+  .feedback{
+    min-height:48px;
+    margin-top:14px;
+    padding:12px 14px;
+    border-radius:10px;
+    display:none;
+    line-height:1.45;
+  }
+  .feedback.ok{
+    display:block;
+    background:#dcfce7;
+    color:var(--ok);
+    border:1px solid #86efac;
+  }
+  .feedback.bad{
+    display:block;
+    background:#fee2e2;
+    color:var(--bad);
+    border:1px solid #fecaca;
+  }
+  .feedback.warn{
+    display:block;
+    background:#fef3c7;
+    color:var(--warn);
+    border:1px solid #fde68a;
+  }
+  .hint{
+    display:none;
+    margin-top:12px;
+    padding:12px 14px;
+    border-left:4px solid var(--accent2);
+    background:#eff6ff;
+    border-radius:8px;
+  }
+  .stats{
+    margin-top:18px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    color:var(--muted);
+    font-size:0.95rem;
+  }
+  .mission-step{
+    margin:16px 0;
+    padding:14px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:#fafafa;
+  }
+  .mission-step strong{
+    display:block;
+    margin-bottom:8px;
+  }
+  .small{
+    font-size:0.9rem;
+    color:var(--muted);
+  }
+  .rulebox{
+    margin-top:18px;
+    padding:14px;
+    background:#f9fafb;
+    border:1px dashed var(--border);
+    border-radius:12px;
+  }
+  .rulebox b{
+    color:#111827;
+  }
+  .conv-wrap{
+    margin:18px 0 8px;
+    overflow-x:auto;
+  }
+  .conv-title{
+    font-weight:700;
+    margin-bottom:8px;
+  }
+  .conv-table{
+    border-collapse:collapse;
+    margin:0 auto;
+    min-width:520px;
+    background:white;
+  }
+  .conv-table th,
+  .conv-table td{
+    border:1px solid #9ca3af;
+    text-align:center;
+    padding:8px 6px;
+  }
+  .conv-table th{
+    background:#f3f4f6;
+    font-size:0.95rem;
+  }
+  .conv-table td{
+    width:56px;
+    height:42px;
+    font-size:1.05rem;
+    font-weight:700;
+  }
+  .conv-note{
+    margin-top:8px;
+    font-size:0.9rem;
+    color:var(--muted);
+    text-align:center;
+  }
+
+  .conv-input{
+    width:100%;
+    min-width:42px;
+    border:none;
+    border-radius:0;
+    text-align:center;
+    font-size:1.05rem;
+    font-weight:700;
+    padding:7px 2px;
+    background:#fff;
+  }
+  .conv-input:focus{
+    outline:2px solid var(--accent2);
+    outline-offset:-2px;
+  }
+  .rect-diagram{
+    width:320px;
+    max-width:90%;
+    margin:20px auto 14px;
+    position:relative;
+    padding:30px 40px;
+  }
+  .rect-shape{
+    height:130px;
+    border:3px solid #374151;
+    background:#f9fafb;
+    position:relative;
+  }
+  .rect-label-top{
+    position:absolute;
+    top:2px;
+    left:50%;
+    transform:translateX(-50%);
+    font-weight:700;
+  }
+  .rect-label-side{
+    position:absolute;
+    right:-4px;
+    top:50%;
+    transform:translate(100%,-50%);
+    font-weight:700;
+    white-space:nowrap;
+  }
+  .formula-box{
+    margin:10px auto 18px;
+    max-width:460px;
+    text-align:center;
+    padding:10px 14px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:#fafafa;
+    font-weight:700;
+  }
+  .tools-zone{
+    margin-top:10px;
+  }
+  .tool-heading{
+    font-weight:700;
+    margin:14px 0 8px;
+  }
+  .cross-wrap{
+    margin:18px 0;
+    padding:16px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:#fafafa;
+  }
+  .cross-title{
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  .cross-table{
+    border-collapse:collapse;
+    margin:0 auto;
+    min-width:420px;
+    background:white;
+  }
+  .cross-table td{
+    border:1px solid #9ca3af;
+    padding:12px 16px;
+    text-align:center;
+    font-size:1.05rem;
+  }
+  .cross-arrow{
+    font-size:1.5rem;
+    font-weight:700;
+  }
+  .calc{
+    margin-top:18px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:14px;
+    background:#fff;
+  }
+  .calc-title{
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  .calc-display{
+    width:100%;
+    font-size:1.25rem;
+    text-align:right;
+    padding:10px 12px;
+    margin-bottom:10px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:#f9fafb;
+  }
+  .calc-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:8px;
+  }
+  .calc-grid button{
+    padding:10px 6px;
+    border-radius:8px;
+    background:#e5e7eb;
+    color:#111827;
+    font-size:1rem;
+  }
+  .calc-grid button.op{
+    background:#dbeafe;
+  }
+  .calc-grid button.eq{
+    background:var(--accent2);
+    color:#fff;
+  }
+  .calc-grid button.clear{
+    background:#fee2e2;
+    color:#991b1b;
+  }
+  .calc-help{
+    margin-top:8px;
+    color:var(--muted);
+    font-size:0.88rem;
+  }
+
+  @media(max-width:600px){
+    .wrap{padding:14px}
+    h1{font-size:1.55rem}
+    input{width:150px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Entraînement – Calculs composites</h1>
+  <div class="subtitle">Surface de moulage • Gelcoat • Catalyseur</div>
+
+  <div class="topbar">
+    <button class="mode active" data-mode="surface">1. Surface</button>
+    <button class="mode" data-mode="gelcoat">2. Gelcoat</button>
+    <button class="mode" data-mode="catalyseur">3. Catalyseur</button>
+    <button class="mode" data-mode="mission">4. Mission complète</button>
+  </div>
+
+  <div class="card">
+    <div id="question"></div>
+
+    <div class="answer-row" id="answerRow">
+      <input id="answer" type="text" inputmode="decimal" placeholder="Ta réponse" />
+      <span id="unit"></span>
+      <button class="primary" id="checkBtn">Vérifier</button>
+      <button class="secondary" id="hintBtn">Indice</button>
+      <button class="new" id="newBtn">Nouvel exercice</button>
+    </div>
+
+    <div id="toolsZone" class="tools-zone"></div>
+
+    <div class="calc">
+      <div class="calc-title">Outil : Calculatrice</div>
+      <input id="calcDisplay" class="calc-display" type="text" inputmode="decimal" readonly />
+      <div class="calc-grid">
+        <button onclick="calcPress('7')">7</button>
+        <button onclick="calcPress('8')">8</button>
+        <button onclick="calcPress('9')">9</button>
+        <button class="op" onclick="calcPress('/')">÷</button>
+        <button class="clear" onclick="calcClear()">C</button>
+
+        <button onclick="calcPress('4')">4</button>
+        <button onclick="calcPress('5')">5</button>
+        <button onclick="calcPress('6')">6</button>
+        <button class="op" onclick="calcPress('*')">×</button>
+        <button class="op" onclick="calcPercent()">%</button>
+
+        <button onclick="calcPress('1')">1</button>
+        <button onclick="calcPress('2')">2</button>
+        <button onclick="calcPress('3')">3</button>
+        <button class="op" onclick="calcPress('-')">−</button>
+        <button class="eq" onclick="calcEquals()">=</button>
+
+        <button onclick="calcPress('0')">0</button>
+        <button onclick="calcPress('.')">,</button>
+        <button onclick="calcBack()">⌫</button>
+        <button class="op" onclick="calcPress('+')">+</button>
+        <button onclick="copyCalcToAnswer()">→ réponse</button>
+      </div>
+      <div class="calc-help">Le bouton % transforme le nombre en pourcentage : par exemple 2 % devient 0,02.</div>
+    </div>
+
+    <div id="feedback" class="feedback"></div>
+    <div id="hint" class="hint"></div>
+
+    <div class="stats">
+      <div>Réussites : <b id="success">0</b></div>
+      <div>Essais : <b id="tries">0</b></div>
+      <div>Série : <b id="streak">0</b></div>
+    </div>
+
+    <div class="rulebox">
+      <b>Repères utiles</b><br>
+      1 m² = 10 000 cm² = 1 000 000 mm²<br>
+      Pour les surfaces : <b>2 cases par unité</b><br>
+      2 % = 0,02 &nbsp; • &nbsp; 1,5 % = 0,015 &nbsp; • &nbsp; 3 % = 0,03
+    </div>
+  </div>
+</div>
+
+<script>
+let mode = "surface";
+let current = {};
+let success = 0;
+let tries = 0;
+let streak = 0;
+let missionIndex = 0;
+let missionAnswers = [];
+
+const q = document.getElementById("question");
+const ans = document.getElementById("answer");
+const unit = document.getElementById("unit");
+const feedback = document.getElementById("feedback");
+const hint = document.getElementById("hint");
+const successEl = document.getElementById("success");
+const triesEl = document.getElementById("tries");
+const streakEl = document.getElementById("streak");
+const answerRow = document.getElementById("answerRow");
+
+function randStep(min, max, step){
+  const n = Math.floor((max-min)/step)+1;
+  return min + Math.floor(Math.random()*n)*step;
+}
+function rnd(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function fmt(n, d=2){
+  return Number(n.toFixed(d)).toString().replace(".", ",");
+}
+function parseFr(v){
+  return parseFloat(String(v).trim().replace(",", "."));
+}
+function closeEnough(a,b,tol=0.01){
+  return Math.abs(a-b) <= tol;
+}
+function clearState(){
+  ans.value = "";
+  feedback.className = "feedback";
+  feedback.textContent = "";
+  hint.style.display = "none";
+  hint.innerHTML = "";
+  ans.focus();
+}
+
+function generateSurface(){
+  const measureUnit = rnd(["cm","cm","mm"]);
+  let L, l, area, m2, areaUnit, divisor;
+
+  if(measureUnit==="cm"){
+    L = randStep(35, 120, 1);
+    l = randStep(20, 80, 1);
+    area = L*l;
+    areaUnit = "cm²";
+    divisor = 10000;
+  }else{
+    L = randStep(350, 1200, 10);
+    l = randStep(200, 800, 10);
+    area = L*l;
+    areaUnit = "mm²";
+    divisor = 1000000;
+  }
+
+  m2 = area/divisor;
+  current = {
+    L,l,measureUnit,area,areaUnit,m2,
+    surfaceStep:0,
+    expected:area,
+    unit:areaUnit
+  };
+
+  renderSurfaceStep();
+}
+
+function renderSurfaceStep(){
+  const isCalcStep = current.surfaceStep===0;
+
+  q.innerHTML = `
+    <div class="question-title">Calculer puis convertir une surface de moulage</div>
+    <div class="data">
+      <div class="datum"><div class="label">Longueur développée</div><div class="value">${current.L} ${current.measureUnit}</div></div>
+      <div class="datum"><div class="label">Largeur développée</div><div class="value">${current.l} ${current.measureUnit}</div></div>
+    </div>
+
+    ${isCalcStep ? `
+      <div class="mission-step">
+        <strong>1. Calcule la surface.</strong>
+        <div class="rect-diagram">
+          <div class="rect-label-top">${current.L} ${current.measureUnit}</div>
+          <div class="rect-shape">
+            <div class="rect-label-side">${current.l} ${current.measureUnit}</div>
+          </div>
+        </div>
+        <div class="formula-box">Surface d’un rectangle = Longueur × largeur</div>
+      </div>
+    ` : `
+      <div class="mission-step">
+        <strong>1. Surface calculée : ${current.area} ${current.areaUnit}</strong>
+      </div>
+
+      <div class="conv-wrap">
+        <div class="conv-title">2. Place les chiffres dans le tableau de conversion</div>
+        <table class="conv-table" aria-label="Tableau de conversion des surfaces">
+          <tr>
+            <th colspan="2">m²</th>
+            <th colspan="2">dm²</th>
+            <th colspan="2">cm²</th>
+            <th colspan="2">mm²</th>
+          </tr>
+          <tr>
+            ${Array.from({length:8},(_,i)=>`<td><input class="conv-input" id="conv${i}" maxlength="1" inputmode="numeric" aria-label="case ${i+1} du tableau"></td>`).join("")}
+          </tr>
+        </table>
+        <div class="answer-row" style="justify-content:center;margin-top:10px">
+          <button class="secondary" type="button" onclick="checkConversionTable()">Vérifier le tableau</button>
+          <button class="secondary" type="button" onclick="clearConversionTable()">Effacer le tableau</button>
+        </div>
+        <div id="convFeedback" class="feedback"></div>
+        <div class="conv-note">
+          Pour les surfaces, <b>chaque unité occupe 2 cases</b>.
+        </div>
+      </div>
+
+      <div class="mission-step">
+        <strong>3. Lis la surface en m² et saisis ta réponse.</strong>
+      </div>
+    `}
+  `;
+
+  if(isCalcStep){
+    current.expected = current.area;
+    unit.textContent = current.areaUnit;
+    hint.innerHTML = `Utilise la formule affichée : <b>Surface = Longueur × largeur</b>.`;
+  }else{
+    current.expected = current.m2;
+    unit.textContent = "m²";
+    if(current.areaUnit==="cm²"){
+      hint.innerHTML = `Place <b>${current.area}</b> dans la colonne <b>cm²</b>, puis lis le nombre en <b>m²</b>.`;
+    }else{
+      hint.innerHTML = `Place <b>${current.area}</b> dans la colonne <b>mm²</b>, puis lis le nombre en <b>m²</b>.`;
+    }
+  }
+}
+function generateGelcoat(){
+  const surface = randStep(12, 95, 1)/100;
+  const conso = rnd([500, 550, 600, 650, 700]);
+  const grams = surface*conso;
+  current = {surface, conso, expected:grams, unit:"g"};
+  q.innerHTML = `
+    <div class="question-title">Estimer la quantité de Gelcoat</div>
+    <div class="data">
+      <div class="datum"><div class="label">Surface de moulage</div><div class="value">${fmt(surface,2)} m²</div></div>
+      <div class="datum"><div class="label">Consommation de Gelcoat pour 1 m²</div><div class="value">${conso} g</div></div>
+    </div>
+
+    <div class="cross-wrap">
+      <div class="cross-title">Produit en croix</div>
+      <table class="cross-table">
+        <tr>
+          <td><b>1 m²</b></td>
+          <td><b>${conso} g</b></td>
+        </tr>
+        <tr>
+          <td><b>${fmt(surface,2)} m²</b></td>
+          <td><b>? g</b></td>
+        </tr>
+      </table>
+    </div>
+
+    <div><b>Quelle quantité de Gelcoat faut-il prévoir pour la pièce à mouler ?</b></div>
+  `;
+  unit.textContent = "g";
+  hint.innerHTML = `
+    Utilise le produit en croix :<br>
+    <b>${fmt(surface,2)} × ${conso} ÷ 1</b>
+  `;
+}
+function generateCatalyseur(){
+  const gc = randStep(80, 380, 5);
+  const rate = rnd([1,1.5,2,2.5,3]);
+  const catalyst = gc*(rate/100);
+  current = {gc,rate,expected:catalyst,unit:"g"};
+  q.innerHTML = `
+    <div class="question-title">Calculer la quantité de catalyseur</div>
+    <div class="data">
+      <div class="datum"><div class="label">Gelcoat</div><div class="value">${gc} g</div></div>
+      <div class="datum"><div class="label">Taux de catalyseur</div><div class="value">${fmt(rate,1)} %</div></div>
+    </div>
+    <div>Quelle masse de catalyseur faut-il ajouter ?</div>
+    <div class="small">Réponse en grammes.</div>
+  `;
+  unit.textContent = "g";
+  hint.innerHTML = `<b>${fmt(rate,1)} % = ${fmt(rate/100,3)}</b><br>Calcul : ${gc} × ${fmt(rate/100,3)}`;
+}
+
+function generateMission(){
+  const L = randStep(40,110,1);
+  const l = randStep(25,75,1);
+  const cm2 = L*l;
+  const surface = cm2/10000;
+  const conso = rnd([500,600,650,700]);
+  const gc = surface*conso;
+  const rate = rnd([1.5,2,2.5]);
+  const cat = gc*(rate/100);
+  current = {L,l,cm2,surface,conso,gc,rate,cat};
+  missionIndex = 0;
+  missionAnswers = [];
+  renderMissionStep();
+}
+
+function missionHistoryHtml(){
+  if(!missionAnswers.length) return "";
+  const labels = [
+    `Surface calculée`,
+    `Surface convertie`,
+    `Gelcoat`,
+    `Catalyseur`
+  ];
+  const units = ["cm²","m²","g","g"];
+  return `
+    <div class="cross-wrap">
+      <div class="cross-title">Réponses validées</div>
+      ${missionAnswers.map((v,i)=>`
+        <div style="margin:6px 0"><b>${i+1}. ${labels[i]} :</b> ${fmt(v, i===1 ? 4 : 2)} ${units[i]}</div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function missionToolsHtml(){
+  return `
+    <div class="conv-wrap">
+      <div class="conv-title">Outil : tableau de conversion des surfaces</div>
+      <table class="conv-table" aria-label="Tableau de conversion des surfaces">
+        <tr>
+          <th colspan="2">m²</th>
+          <th colspan="2">dm²</th>
+          <th colspan="2">cm²</th>
+          <th colspan="2">mm²</th>
+        </tr>
+        <tr>
+          ${Array.from({length:8},(_,i)=>`<td><input class="conv-input" id="conv${i}" maxlength="1" inputmode="numeric" aria-label="case ${i+1} du tableau"></td>`).join("")}
+        </tr>
+      </table>
+      <div class="answer-row" style="justify-content:center;margin-top:10px">
+        <button class="secondary" type="button" onclick="checkConversionTable()">Vérifier le tableau</button>
+        <button class="secondary" type="button" onclick="clearConversionTable()">Effacer le tableau</button>
+      </div>
+      <div id="convFeedback" class="feedback"></div>
+      <div class="conv-note">Pour les surfaces, <b>2 cases par unité</b>.</div>
+    </div>
+
+    <div class="cross-wrap">
+      <div class="cross-title">Outil : produit en croix pour le Gelcoat</div>
+      <table class="cross-table">
+        <tr>
+          <td><b>1 m²</b></td>
+          <td><b>${current.conso} g</b></td>
+        </tr>
+        <tr>
+          <td><b>${fmt(current.surface,4)} m²</b></td>
+          <td><b>? g</b></td>
+        </tr>
+      </table>
+    </div>
+  `;
+}
+
+function renderMissionStep(){
+  const base = `
+    <div class="question-title">Mission complète – Préparation du Gelcoat</div>
+    <div class="data">
+      <div class="datum"><div class="label">Longueur développée</div><div class="value">${current.L} cm</div></div>
+      <div class="datum"><div class="label">Largeur développée</div><div class="value">${current.l} cm</div></div>
+      <div class="datum"><div class="label">Consommation de Gelcoat pour 1 m²</div><div class="value">${current.conso} g</div></div>
+      <div class="datum"><div class="label">Taux catalyseur</div><div class="value">${fmt(current.rate,1)} %</div></div>
+    </div>
+    ${missionHistoryHtml()}
+  `;
+
+  const steps = [
+    {text:`1. Calcule la surface en cm².`, expected:current.cm2, unit:"cm²",
+     hint:`${current.L} × ${current.l}`},
+    {text:`2. Convertis cette surface en m².`, expected:current.surface, unit:"m²",
+     hint:`Place ${current.cm2} dans les colonnes cm² du tableau puis lis vers m².`},
+    {text:`3. Calcule la quantité de Gelcoat à prévoir pour la pièce à mouler.`, expected:current.gc, unit:"g",
+     hint:`Utilise le produit en croix.`},
+    {text:`4. Calcule la quantité de catalyseur.`, expected:current.cat, unit:"g",
+     hint:`${fmt(current.rate,1)} % = ${fmt(current.rate/100,3)} ; puis multiplie la quantité de Gelcoat par ce nombre.`}
+  ];
+
+  const s = steps[missionIndex];
+  current.expected = s.expected;
+  q.innerHTML = base
+    + `<div class="mission-step"><strong>${s.text}</strong></div>`;
+
+  const toolsZone = document.getElementById("toolsZone");
+  if(toolsZone){
+    toolsZone.innerHTML = missionToolsHtml();
+  }
+
+  unit.textContent = s.unit;
+  hint.innerHTML = s.hint;
+}
+function newExercise(){
+  clearState();
+  const cd = document.getElementById("calcDisplay");
+  if(cd) cd.value = "";
+  const toolsZone = document.getElementById("toolsZone");
+  if(toolsZone) toolsZone.innerHTML = "";
+  if(mode==="surface") generateSurface();
+  if(mode==="gelcoat") generateGelcoat();
+  if(mode==="catalyseur") generateCatalyseur();
+  if(mode==="mission") generateMission();
+}
+
+function showFeedback(kind, html){
+  feedback.className = "feedback " + kind;
+  feedback.innerHTML = html;
+}
+
+function checkAnswer(){
+  const val = parseFr(ans.value);
+  if(Number.isNaN(val)){
+    showFeedback("warn","Entre une valeur numérique.");
+    return;
+  }
+  tries++;
+  triesEl.textContent = tries;
+
+  let expected = current.expected;
+  let tol = 0.01;
+  if(mode==="surface") tol = 0.005;
+  if(mode==="mission" && missionIndex===0) tol = 0.5;
+  if(mode==="mission" && missionIndex===1) tol = 0.005;
+  if((mode==="gelcoat") || (mode==="mission" && missionIndex===2)) tol = 0.5;
+  if((mode==="catalyseur") || (mode==="mission" && missionIndex===3)) tol = 0.05;
+
+  const ok = closeEnough(val, expected, tol);
+
+  if(ok){
+    success++;
+    streak++;
+    successEl.textContent = success;
+    streakEl.textContent = streak;
+    showFeedback("ok","Correct.");
+
+    if(mode==="surface"){
+      if(current.surfaceStep===0){
+        current.surfaceStep = 1;
+        setTimeout(()=>{
+          clearState();
+          renderSurfaceStep();
+        },700);
+      }
+    }
+
+    if(mode==="mission"){
+      missionAnswers.push(val);
+      if(missionIndex < 3){
+        missionIndex++;
+        setTimeout(()=>{
+          clearState();
+          renderMissionStep();
+        },700);
+      }else{
+        showFeedback("ok",
+          `Mission réussie.<br>
+           Surface : <b>${current.cm2} cm² = ${fmt(current.surface,4)} m²</b><br>
+           Gelcoat : <b>${fmt(current.gc,2)} g</b><br>
+           Catalyseur : <b>${fmt(current.cat,2)} g</b>`
+        );
+      }
+    }
+  }else{
+    streak = 0;
+    streakEl.textContent = streak;
+
+    if((mode==="catalyseur" || (mode==="mission" && missionIndex===3)) && current.rate){
+      const wrongTimesRate = current.gc * current.rate;
+      if(closeEnough(val, wrongTimesRate, 0.5)){
+        showFeedback("bad",
+          `Tu as multiplié par <b>${fmt(current.rate,1)}</b> au lieu de convertir le pourcentage.<br>
+           <b>${fmt(current.rate,1)} % = ${fmt(current.rate/100,3)}</b>. Recommence.`
+        );
+        return;
+      }
+    }
+
+    if(mode==="surface" && current.surfaceStep===1){
+      if(current.areaUnit==="cm²" && closeEnough(val, current.area/100, 0.1)){
+        showFeedback("bad",
+          `Tu n'as pas assez converti. Pour une surface, chaque changement d'unité correspond à <b>2 cases</b> dans le tableau.`
+        );
+        return;
+      }
+      if(current.areaUnit==="mm²" && (closeEnough(val, current.area/1000, 0.1) || closeEnough(val, current.area/10000, 0.1))){
+        showFeedback("bad",
+          `Attention : tu pars de <b>mm²</b>. Place le nombre dans la colonne mm² puis remonte le tableau jusqu'à m².`
+        );
+        return;
+      }
+    }
+
+    showFeedback("bad","Ce n'est pas la bonne valeur. Utilise l'indice si besoin, puis recommence.");
+  }
+}
+
+
+function calcPress(v){
+  const d = document.getElementById("calcDisplay");
+  d.value += v;
+}
+function calcClear(){
+  document.getElementById("calcDisplay").value = "";
+}
+function calcBack(){
+  const d = document.getElementById("calcDisplay");
+  d.value = d.value.slice(0,-1);
+}
+function calcPercent(){
+  const d = document.getElementById("calcDisplay");
+  const m = d.value.match(/(\d+(?:\.\d+)?)$/);
+  if(!m) return;
+  const n = parseFloat(m[1]);
+  const pct = n/100;
+  d.value = d.value.slice(0, m.index) + pct;
+}
+function calcEquals(){
+  const d = document.getElementById("calcDisplay");
+  try{
+    const expr = d.value.replace(/[^0-9+\-*/.]/g,"");
+    if(!expr) return;
+    const result = Function('"use strict";return (' + expr + ')')();
+    if(Number.isFinite(result)){
+      d.value = String(Math.round((result + Number.EPSILON)*1000000)/1000000);
+    }
+  }catch(e){
+    d.value = "Erreur";
+  }
+}
+function copyCalcToAnswer(){
+  const d = document.getElementById("calcDisplay");
+  if(d.value && d.value !== "Erreur"){
+    ans.value = d.value.replace(".",",");
+    ans.focus();
+  }
+}
+function clearConversionTable(){
+  for(let i=0;i<8;i++){
+    const el = document.getElementById("conv"+i);
+    if(el) el.value = "";
+  }
+  const f = document.getElementById("convFeedback");
+  if(f){ f.className="feedback"; f.textContent=""; }
+}
+function expectedConversionDigits(){
+  // Build 8 digits corresponding to m²(2), dm²(2), cm²(2), mm²(2).
+  // We place the decimal representation of m² across 2-digit area units.
+  // Example 2881 cm² = 00 | 28 | 81 | 00
+  let totalMm2;
+  if(current.areaUnit==="cm²"){
+    totalMm2 = current.area * 100; // 1 cm² = 100 mm²
+  }else{
+    totalMm2 = current.area;
+  }
+  const s = String(Math.round(totalMm2)).padStart(8,"0").slice(-8);
+  return s.split("");
+}
+function checkConversionTable(){
+  const expected = expectedConversionDigits();
+  const entered = [];
+  for(let i=0;i<8;i++){
+    const el = document.getElementById("conv"+i);
+    if(!el) return;
+    entered.push((el.value||"").trim() || "0");
+  }
+  const f = document.getElementById("convFeedback");
+  const ok = expected.every((v,i)=>v===entered[i]);
+  if(ok){
+    f.className = "feedback ok";
+    f.innerHTML = "Tableau correct. Tu peux maintenant lire la valeur en m².";
+  }else{
+    f.className = "feedback bad";
+    f.innerHTML = "Le placement n'est pas encore correct. Vérifie l'unité de départ et rappelle-toi : <b>2 cases par unité de surface</b>.";
+  }
+}
+
+document.querySelectorAll(".mode").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".mode").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    mode = btn.dataset.mode;
+    newExercise();
+  });
+});
+
+document.getElementById("checkBtn").addEventListener("click",checkAnswer);
+document.getElementById("hintBtn").addEventListener("click",()=>{
+  hint.style.display = "block";
+});
+document.getElementById("newBtn").addEventListener("click",newExercise);
+ans.addEventListener("keydown",e=>{
+  if(e.key==="Enter") checkAnswer();
+});
+
+newExercise();
+</script>
+</body>
+</html>
